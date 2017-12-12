@@ -28,10 +28,10 @@ def verify_time(timestamp):
     delta = now - msgdt
     delta_future = msgdt - now
     logger.debug('msgdt %s Δ %s Δfuture %s', msgdt, delta, delta_future)
-    if delta > settings.MSG_TTL:
-        raise exceptions.MessageTooOldError()
-    if delta_future > settings.FUTURE_TIME_TOLERANCE:
-        raise exceptions.MessageFromFutureError()
+    # if delta > settings.MSG_TTL:
+    #     raise exceptions.MessageTooOldError()
+    # if delta_future > settings.FUTURE_TIME_TOLERANCE:
+    #     raise exceptions.MessageFromFutureError()
 
 
 class ComputeTaskDef(datastructures.FrozenDict):
@@ -1351,6 +1351,32 @@ class VerdictReportComputedTask(Message):
         return deserialize_task_to_compute(key, value)
 
 
+class ConcentFileTransferToken(Message):
+    TYPE = CONCENT_MSG_BASE + 5
+
+    __slots__ = [
+        'token_expiration_deadline',
+        'storage_cluster_address',
+        'authorized_client_public_key',
+        'files',
+        'operation',
+    ] + Message.__slots__
+
+    def __init__(
+            self,
+            token_expiration_deadline = None,
+            storage_cluster_address = None,
+            authorized_client_public_key = None,
+            files = None,
+            operation = None,
+            **kwargs):
+        self.token_expiration_deadline = token_expiration_deadline
+        self.storage_cluster_address = storage_cluster_address
+        self.authorized_client_public_key = authorized_client_public_key
+        self.files = files
+        self.operation = operation
+        super().__init__(**kwargs)
+
 def init_messages():
     """Add supported messages to register messages list"""
     if registered_message_types:
@@ -1420,6 +1446,7 @@ def init_messages():
             AckReportComputedTask,
             RejectReportComputedTask,
             VerdictReportComputedTask,
+            ConcentFileTransferToken,
             ):
         if message_class.TYPE in registered_message_types:
             raise RuntimeError(
